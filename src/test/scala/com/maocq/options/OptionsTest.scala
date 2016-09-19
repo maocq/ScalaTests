@@ -333,4 +333,34 @@ class OptionsTest extends FunSuite {
     assert(res2 == List())
   }
 
+
+  /**
+    * Option.map/getOrElse
+    */
+  test("Option.map/getOrElse") {
+    val number: Option[Int] = Some(3)
+    val noNumber: Option[Int] = None
+
+    val result = number map { _.toString} getOrElse "0"
+    val result2 = noNumber map { _.toString} getOrElse "0"
+
+    assert(result == "3")
+    assert(result2 == "0")
+  }
+
+
+  /**
+    * Option.fold
+    */
+  test("Option.fold") {
+    val number: Option[Int] = Some(3)
+    val noNumber: Option[Int] = None
+
+    val result = number.fold("0") { _.toString }
+    val result2 = noNumber.fold("0") { _.toString }
+
+    assert(result == "3")
+    assert(result2 == "0")
+  }
+
 }

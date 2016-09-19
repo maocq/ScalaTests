@@ -19,7 +19,7 @@ class FuturesTest extends FunSuite {
     }
     f onSuccess {
       case msg =>
-        println("\t" + msg)
+        //println("\t" + msg)
         assert(msg == "Hello future!")
     }
   }
@@ -35,7 +35,7 @@ class FuturesTest extends FunSuite {
     }
     future onSuccess {
       case answer: Int =>
-        println("\tSuccess!")
+        //println("\tSuccess!")
         assert(answer == 5)
     }
     future onFailure {
@@ -89,6 +89,140 @@ class FuturesTest extends FunSuite {
 
     j onComplete {
       case Success(value) => assert(value == 9)
+      case Failure(e) => e.printStackTrace()
+    }
+
+  }
+
+
+  /**
+    * For comprehension ...
+    * Igual hilo si ejecutan sin interrupción
+    * Si se demora se ejecutan en hilos diferentes
+    */
+  test("For comprehension Hilos") {
+
+    /*
+    1 ForkJoinPool-1-worker-7
+    2 ForkJoinPool-1-worker-5
+    3 ForkJoinPool-1-worker-3
+    */
+
+    val f = Future{
+      //println("\t1 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      1
+    }
+    val g = Future{
+      //println("\t2 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      2
+    }
+    val h = Future{
+      //println("\t3 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      3
+    }
+
+    val inicio = System.currentTimeMillis()
+
+    val j = for {
+      x <- f
+      y <- g
+      z <- h
+    } yield x + y + z
+
+    j onComplete {
+      case Success(value) =>
+        /*
+         * Termina en 1000 ms
+         */
+        //val fin = System.currentTimeMillis()
+        //println("\t FC-1: " + (fin - inicio))
+        assert(value == 6)
+      case Failure(e) => e.printStackTrace()
+    }
+
+  }
+
+
+  /**
+    * For comprehension def normal
+    * No se ejecuta simultaneamente
+    */
+  test("For comprehension def normal") {
+
+    def f = Future{
+      //println("\t1 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      1
+    }
+    def g = Future{
+      //println("\t2 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      2
+    }
+    def h = Future{
+      //println("\t3 " + Thread.currentThread().getName)
+      //Thread.sleep(1000)
+      3
+    }
+
+    val inicio = System.currentTimeMillis()
+
+    val j = for {
+      x <- f
+      y <- g
+      z <- h
+    } yield x + y + z
+
+    j onComplete {
+      case Success(value) =>
+        /*
+         * Termina en 3000 ms
+         */
+        val fin = System.currentTimeMillis()
+        //println("\t FC-1: " + (fin - inicio))
+        assert(value == 6)
+      case Failure(e) => e.printStackTrace()
+    }
+
+  }
+
+
+  /**
+    * For comprehension def (No se ejecuta simultaneamente)
+    */
+  test("For comprehension def anonimo") {
+
+    val inicio = System.currentTimeMillis()
+    val j = for {
+      x <- Future{
+        //println("\t1-2 " + Thread.currentThread().getName)
+        //Thread.sleep(1000)
+        1
+      }
+      y <- Future{
+        //println("\t2-2 " + Thread.currentThread().getName)
+        //Thread.sleep(1000)
+        2
+      }
+      z <- Future{
+        //println("\t3-2 " + Thread.currentThread().getName)
+        //Thread.sleep(1000)
+        3
+      }
+    } yield x + y + z
+
+
+    j onComplete {
+      case Success(value) =>
+        /*
+         * Termina en 3000 ms
+         */
+        //val fin = System.currentTimeMillis()
+        //println("\t FC-2: " + (fin - inicio))
+        assert(value == 6)
       case Failure(e) => e.printStackTrace()
     }
 
@@ -588,7 +722,7 @@ class FuturesTest extends FunSuite {
 
 
   /**
-    * flatMap
+    * flatMap (Asincrono)
     * def flatMap[S](f: (T) ⇒ Future[S])(implicit executor: ExecutionContext): Future[S]
     */
   test("flatMap") {
@@ -617,7 +751,7 @@ class FuturesTest extends FunSuite {
 
 
   /**
-    * map
+    * map (Sincrono)
     * def map[S](f: (T) ⇒ S)(implicit executor: ExecutionContext): Future[S]
     */
   test("map") {
@@ -655,7 +789,7 @@ class FuturesTest extends FunSuite {
 
 
   /**
-    * recover
+    * recover (Sincrono)
     * def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U]
     */
   test("recover") {
@@ -670,7 +804,7 @@ class FuturesTest extends FunSuite {
 
 
   /**
-    * recoverWith
+    * recoverWith (Asincrono)
     * def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])(implicit executor: ExecutionContext): Future[U]
     */
   test("recoverWith") {
