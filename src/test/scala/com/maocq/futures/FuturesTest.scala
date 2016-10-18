@@ -817,6 +817,31 @@ class FuturesTest extends FunSuite {
   }
 
 
+  /**
+    * Future successful
+    */
+  test("Future successful") {
+    def futureInt(x: Boolean): Future[Int] = {
+      val result = x match {
+        case true =>
+          Future{
+            //sleep(5000)
+            1
+          }
+        case false => Future.successful(0)
+      }
+      result
+    }
+
+    val y: Future[Int] = futureInt(false)
+
+    y foreach { num =>
+      assert(num == 0)
+    }
+  }
+
+
+
   def sleep(millis: Long) = {
     Thread.sleep(millis)
   }
